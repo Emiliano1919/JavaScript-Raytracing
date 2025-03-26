@@ -36,3 +36,17 @@ class Color{
         );
     }
 }
+
+function putPixel(x, y, color) {
+    const sx=canvas.width/2+x
+    const sy=canvas.height/2-y
+    if (sx<-canvas.width/2  || sx>canvas.width/2 - 1 || sy<-canvas.height/2 || sy > canvas.height/2-1){
+        return null;
+    }
+    const index = (sy * canvas.width + sx) * 4;
+    data[index] = color.r;
+    data[index + 1] = color.g; 
+    data[index + 2] = color.b;
+    data[index + 3] = 255;
+    
+}
