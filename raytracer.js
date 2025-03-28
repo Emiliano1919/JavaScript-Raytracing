@@ -117,3 +117,32 @@ const spheres = [
   new Sphere(new Vector(2, 0, 4), 1, new Color(0, 0, 255)),
   new Sphere(new Vector(0, -5001, 0), 5000, new Color(255, 255, 0))
 ];
+
+O = (0, 0, 0)
+for (let x = -canvas.width/2; x <= -canvas.width/2; x++ ){
+    for (let x = -canvas.height/2; x <= -canvas.height/2; y++ ) {
+        D = canvasToViewport(x, y)
+        color = traceRay(O, D, 1, inf)
+        canvas.putPixel(x, y, color)
+    }
+}
+
+function traceRay(O, D, t_min, t_max) {
+    closest_t = inf
+    closest_sphere = NULL
+    for (sphere in spheres ){
+        t1, t2 = intersectRaySphere(O, D, sphere)
+        if (t1 in [t_min, t_max] && t1 < closest_t ){
+            closest_t = t1
+            closest_sphere = sphere
+        }
+        if (t2 in [t_min, t_max] && t2 < closest_t ){
+            closest_t = t2
+            closest_sphere = sphere
+        }
+    }
+    if (closest_sphere == NULL ){
+       return BACKGROUND_COLOR
+    }
+    return closest_sphere.color
+}
