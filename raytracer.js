@@ -20,9 +20,9 @@ class Color {
     }
 
     modifyIntensity(k){
-        this.r=k*r;
-        this.g=k*g;
-        this.b=k.b;
+        this.r=Math.min(k*r,255);
+        this.g=Math.min(k*g,255);
+        this.b=Math.min(k.b,255);
     }
 
     #evaluateAddition(a,b){
