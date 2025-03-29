@@ -108,7 +108,7 @@ function putPixel(x, y, color) {
 // The Scene
 const camera_position = new Vector(0, 0, 0);
 const spheres = [
-    new Sphere(new Vector(0, -1, 3), 1, new Color(295, 0, 0)),
+    new Sphere(new Vector(0, -1, 3), 1, new Color(255, 0, 0)),
     new Sphere(new Vector(-2, 0, 4), 1, new Color(0, 255, 0)),
     new Sphere(new Vector(2, 0, 4), 1, new Color(0, 0, 255))
 ];
