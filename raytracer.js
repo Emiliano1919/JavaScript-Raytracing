@@ -19,10 +19,12 @@ class Color {
         this.b = b;
     }
 
-    modifyIntensity(k){
-        this.r=Math.min(k*r,255);
-        this.g=Math.min(k*g,255);
-        this.b=Math.min(k.b,255);
+    modifyIntensity(k) {
+        return new Color(
+            Math.min(Math.round(k * this.r), 255),
+            Math.min(Math.round(k * this.g), 255),
+            Math.min(Math.round(k * this.b), 255)
+        );
     }
 
     #evaluateAddition(a,b){
@@ -41,6 +43,15 @@ class Color {
         );
     }
     
+}
+
+class Light {
+    constructor(type, intensity, position=null, direction=null) {
+        this.type=type;
+        this.intensity=intensity;
+        this.position=position;
+        this.direction=direction;
+    }
 }
 
 const BACKGROUND_COLOR = new Color(255, 255, 255);
@@ -110,8 +121,18 @@ const camera_position = new Vector(0, 0, 0);
 const spheres = [
     new Sphere(new Vector(0, -1, 3), 1, new Color(255, 0, 0)),
     new Sphere(new Vector(-2, 0, 4), 1, new Color(0, 255, 0)),
-    new Sphere(new Vector(2, 0, 4), 1, new Color(0, 0, 255))
+    new Sphere(new Vector(2, 0, 4), 1, new Color(0, 0, 255)),
+    new Sphere(new Vector(0, -5001, 0), 5000, new Color(255, 0, 255))
 ];
+const lights= [
+    new Light('ambient', 0.2),
+    new Light('point', 0.6, new Vector(2, 1, 0)),
+    new Light('directional', 0.2,null,new Vector(2, 1, 0))
+];
+
+
+
+
 
 const O = new Vector(0, 0, 0);
 
@@ -124,6 +145,30 @@ for (let x = -canvas.width / 2; x <= canvas.width / 2; x++) {
 }
 
 canvas_ctx.putImageData(canvas_buffer, 0, 0);
+
+function computeLighting(P,N) {
+    let i=0.0;
+    for (let light of lights){
+        if (light.type == 'ambient'){
+            i+=light.intensity;
+        }  
+        else {
+            let L;
+            if(light.type == 'point'){
+                L=light.position.subtract(P);
+            }
+            else if(light.type == 'directional'){
+                L=light.direction;
+            }
+            const NdotL=N.dot(L);
+            if (NdotL>0){
+                i+=light.intensity*(NdotL/(L.magnitude()*N.magnitude()));
+            }
+            
+        }
+    }
+    return i;
+}
 
 function traceRay(O, D, t_min, t_max) {
     let closest_t = inf;
@@ -145,7 +190,11 @@ function traceRay(O, D, t_min, t_max) {
     if (closest_sphere === null) {
         return BACKGROUND_COLOR;
     }
-    return closest_sphere.color;
+    P = O.add(D.scale(closest_t)); //P=O+t(V-O)=O+tD
+    N = P.subtract(closest_sphere.centre); // The normal vector of a sphere is just the vector that you get from
+    // subtracting the center vector to the perimeter vector at a certain point
+    N = N.scale(1/(N.magnitude()));
+    return closest_sphere.color.modifyIntensity(computeLighting(P, N));
 }
 
 function intersectRaySphere(O, D, sphere) {
