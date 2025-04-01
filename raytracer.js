@@ -57,10 +57,11 @@ class Light {
 const BACKGROUND_COLOR = new Color(255, 255, 255);
 
 class Sphere {
-    constructor(centre, radius, color) {
+    constructor(centre, radius, color, specular) {
         this.centre = centre;
         this.radius = radius;
         this.color = color;
+        this.specular = this.specular;
     }
 }
 
@@ -119,10 +120,10 @@ function putPixel(x, y, color) {
 // The Scene
 const camera_position = new Vector(0, 0, 0);
 const spheres = [
-    new Sphere(new Vector(0, -1, 3), 1, new Color(255, 0, 0)),
-    new Sphere(new Vector(-2, 0, 4), 1, new Color(0, 255, 0)),
-    new Sphere(new Vector(2, 0, 4), 1, new Color(0, 0, 255)),
-    new Sphere(new Vector(0, -5001, 0), 5000, new Color(255, 0, 255))
+    new Sphere(new Vector(0, -1, 3), 1, new Color(255, 0, 0),500),
+    new Sphere(new Vector(-2, 0, 4), 1, new Color(0, 255, 0),500),
+    new Sphere(new Vector(2, 0, 4), 1, new Color(0, 0, 255),10),
+    new Sphere(new Vector(0, -5001, 0), 5000, new Color(255, 0, 255),1000)
 ];
 const lights= [
     new Light('ambient', 0.2),
