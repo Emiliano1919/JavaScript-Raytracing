@@ -61,7 +61,7 @@ class Sphere {
         this.centre = centre;
         this.radius = radius;
         this.color = color;
-        this.specular = this.specular;
+        this.specular = specular;
     }
 }
 
@@ -121,9 +121,9 @@ function putPixel(x, y, color) {
 const camera_position = new Vector(0, 0, 0);
 const spheres = [
     new Sphere(new Vector(0, -1, 3), 1, new Color(255, 0, 0),500),
-    new Sphere(new Vector(-2, 0, 4), 1, new Color(0, 255, 0),500),
+    new Sphere(new Vector(-2, 0, 4), 1, new Color(0, 255, 0),80),
     new Sphere(new Vector(2, 0, 4), 1, new Color(0, 0, 255),10),
-    new Sphere(new Vector(0, -5001, 0), 5000, new Color(255, 0, 255),1000)
+    new Sphere(new Vector(0, -5001, 0), 5000, new Color(255, 0, 255),100)
 ];
 const lights= [
     new Light('ambient', 0.2),
@@ -147,7 +147,7 @@ for (let x = -canvas.width / 2; x <= canvas.width / 2; x++) {
 
 canvas_ctx.putImageData(canvas_buffer, 0, 0);
 
-function computeLighting(P,N) {
+function computeLighting(P,N,V, s) {
     let i=0.0;
     for (let light of lights){
         if (light.type == 'ambient'){
@@ -164,6 +164,13 @@ function computeLighting(P,N) {
             const NdotL=N.dot(L);
             if (NdotL>0){
                 i+=light.intensity*(NdotL/(L.magnitude()*N.magnitude()));
+            }
+            if (s != -1){
+                R = N.scale(2*NdotL).subtract(L);
+                const RdotV=R.dot(V);
+                if (RdotV>0) {
+                    i+=light.intensity*((RdotV/(R.magnitude()*V.magnitude()))**s)
+                }
             }
             
         }
@@ -195,7 +202,7 @@ function traceRay(O, D, t_min, t_max) {
     N = P.subtract(closest_sphere.centre); // The normal vector of a sphere is just the vector that you get from
     // subtracting the center vector to the perimeter vector at a certain point
     N = N.scale(1/(N.magnitude()));
-    return closest_sphere.color.modifyIntensity(computeLighting(P, N));
+    return closest_sphere.color.modifyIntensity(computeLighting(P, N,D.scale(-1), closest_sphere.specular));
 }
 
 function intersectRaySphere(O, D, sphere) {
