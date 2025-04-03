@@ -147,6 +147,25 @@ for (let x = -canvas.width / 2; x <= canvas.width / 2; x++) {
 
 canvas_ctx.putImageData(canvas_buffer, 0, 0);
 
+function closestIntersection(O,D,t_min,t_max){
+    let closest_t = inf;
+    let closest_sphere = null;
+
+    for (let sphere of spheres) {
+        let [t1, t2] = intersectRaySphere(O, D, sphere);
+
+        if (t1 >= t_min && t1 < closest_t) {
+            closest_t = t1;
+            closest_sphere = sphere;
+        }
+        if (t2 >= t_min && t2 < closest_t) {
+            closest_t = t2;
+            closest_sphere = sphere;
+        }
+    }
+    return [closest_sphere, closest_t];
+}
+
 function computeLighting(P,N,V, s) {
     let i=0.0;
     for (let light of lights){
@@ -157,9 +176,16 @@ function computeLighting(P,N,V, s) {
             let L;
             if(light.type == 'point'){
                 L=light.position.subtract(P);
+                t_max=1;
             }
             else if(light.type == 'directional'){
                 L=light.direction;
+                t_max=inf; //P+tL=P+L=THE LIGHT POINT
+            }
+            let [shadow_sphere,shadow_t]=closestIntersection(P,L,0.001,t_max)
+
+            if (shadow_sphere != null) {
+                continue;
             }
             const NdotL=N.dot(L);
             if (NdotL>0){
@@ -179,22 +205,7 @@ function computeLighting(P,N,V, s) {
 }
 
 function traceRay(O, D, t_min, t_max) {
-    let closest_t = inf;
-    let closest_sphere = null;
-
-    for (let sphere of spheres) {
-        let [t1, t2] = intersectRaySphere(O, D, sphere);
-
-        if (t1 >= t_min && t1 < closest_t) {
-            closest_t = t1;
-            closest_sphere = sphere;
-        }
-        if (t2 >= t_min && t2 < closest_t) {
-            closest_t = t2;
-            closest_sphere = sphere;
-        }
-    }
-
+    let [closest_sphere,closest_t]= closestIntersection(O, D, t_min, t_max);
     if (closest_sphere === null) {
         return BACKGROUND_COLOR;
     }
@@ -202,6 +213,7 @@ function traceRay(O, D, t_min, t_max) {
     N = P.subtract(closest_sphere.centre); // The normal vector of a sphere is just the vector that you get from
     // subtracting the center vector to the perimeter vector at a certain point
     N = N.scale(1/(N.magnitude()));
+    console.log(closest_sphere)
     return closest_sphere.color.modifyIntensity(computeLighting(P, N,D.scale(-1), closest_sphere.specular));
 }
 
