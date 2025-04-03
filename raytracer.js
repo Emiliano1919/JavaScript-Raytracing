@@ -17,7 +17,6 @@ class Color {
         this.r = r;
         this.g = g;
         this.b = b;
-        this.reflective=this.reflective;
     }
 
     modifyIntensity(k) {
@@ -28,14 +27,11 @@ class Color {
         );
     }
 
-    #evaluateAddition(a,b){
-        if(a+b>=255){
-            return 255;
-        }
-        if(a+b<=0){
-            return 0;
-        }
-    }
+    #evaluateAddition(a, b) {
+        if (a + b >= 255) return 255;
+        if (a + b <= 0) return 0;
+        return a + b;
+    }j
     add(other) {
         return new Color(
           this.#evaluateAddition(this.r,other.r),
@@ -58,11 +54,12 @@ class Light {
 const BACKGROUND_COLOR = new Color(255, 255, 255);
 
 class Sphere {
-    constructor(centre, radius, color, specular) {
+    constructor(centre, radius, color, specular,reflective) {
         this.centre = centre;
         this.radius = radius;
         this.color = color;
         this.specular = specular;
+        this.reflective=reflective;
     }
 }
 
@@ -141,7 +138,7 @@ const O = new Vector(0, 0, 0);
 for (let x = -canvas.width / 2; x <= canvas.width / 2; x++) {
     for (let y = -canvas.height / 2; y <= canvas.height / 2; y++) {
         let D = canvasToViewport(x, y);
-        let color = traceRay(O, D, 1, inf);
+        let color = traceRay(O, D, 1, inf, 3);
         putPixel(x, y, color);
     }
 }
@@ -210,16 +207,26 @@ function computeLighting(P,N,V, s) {
     return i;
 }
 
-function traceRay(O, D, t_min, t_max) {
+function traceRay(O, D, t_min, t_max , recursion_depth) {
     let [closest_sphere,closest_t]= closestIntersection(O, D, t_min, t_max);
-    if (closest_sphere === null) {
+    if (closest_sphere == null) {
         return BACKGROUND_COLOR;
     }
     P = O.add(D.scale(closest_t)); //P=O+t(V-O)=O+tD
     N = P.subtract(closest_sphere.centre); // The normal vector of a sphere is just the vector that you get from
     // subtracting the center vector to the perimeter vector at a certain point
     N = N.scale(1/(N.magnitude()));
-    return closest_sphere.color.modifyIntensity(computeLighting(P, N,D.scale(-1), closest_sphere.specular));
+    let local_color= closest_sphere.color.modifyIntensity(computeLighting(P, N,D.scale(-1), closest_sphere.specular));
+
+    let r=closest_sphere.reflective
+    if ( r<=0 || recursion_depth <= 0 ) {
+        return local_color;
+    }
+    let mD=D.scale(-1);
+    let NdotmD = N.dot(mD);
+    let R=reflectRay(mD,N, NdotmD);
+    let reflected_color = traceRay(P,R,0.001,inf,recursion_depth-1);
+    return (local_color.modifyIntensity(1 - r).add(reflected_color.modifyIntensity(r)));
 }
 
 function intersectRaySphere(O, D, sphere) {
