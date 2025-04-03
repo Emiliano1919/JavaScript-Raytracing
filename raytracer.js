@@ -213,7 +213,6 @@ function traceRay(O, D, t_min, t_max) {
     N = P.subtract(closest_sphere.centre); // The normal vector of a sphere is just the vector that you get from
     // subtracting the center vector to the perimeter vector at a certain point
     N = N.scale(1/(N.magnitude()));
-    console.log(closest_sphere)
     return closest_sphere.color.modifyIntensity(computeLighting(P, N,D.scale(-1), closest_sphere.specular));
 }
 
