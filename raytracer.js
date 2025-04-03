@@ -165,12 +165,12 @@ function closestIntersection(O,D,t_min,t_max){
 }
 
 function reflectRay(R, N,NdotR){
-    R = N.scale(2*(NdotR)).subtract(R);
-    return R;
+    return N.scale(2 * NdotR).subtract(R);
 }
 
 function computeLighting(P,N,V, s) {
     let i=0.0;
+    let t_max;
     for (let light of lights){
         if (light.type == 'ambient'){
             i+=light.intensity;
