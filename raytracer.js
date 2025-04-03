@@ -17,6 +17,7 @@ class Color {
         this.r = r;
         this.g = g;
         this.b = b;
+        this.reflective=this.reflective;
     }
 
     modifyIntensity(k) {
@@ -120,10 +121,10 @@ function putPixel(x, y, color) {
 // The Scene
 const camera_position = new Vector(0, 0, 0);
 const spheres = [
-    new Sphere(new Vector(0, -1, 3), 1, new Color(255, 0, 0),500),
-    new Sphere(new Vector(-2, 0, 4), 1, new Color(0, 255, 0),80),
-    new Sphere(new Vector(2, 0, 4), 1, new Color(0, 0, 255),10),
-    new Sphere(new Vector(0, -5001, 0), 5000, new Color(255, 0, 255),100)
+    new Sphere(new Vector(0, -1, 3), 1, new Color(255, 0, 0),500,0.2),
+    new Sphere(new Vector(-2, 0, 4), 1, new Color(0, 255, 0),80,0.3),
+    new Sphere(new Vector(2, 0, 4), 1, new Color(0, 0, 255),10,0.4),
+    new Sphere(new Vector(0, -5001, 0), 5000, new Color(255, 0, 255),100,0.5)
 ];
 const lights= [
     new Light('ambient', 0.2),
@@ -166,6 +167,11 @@ function closestIntersection(O,D,t_min,t_max){
     return [closest_sphere, closest_t];
 }
 
+function reflectRay(R, N,NdotR){
+    R = N.scale(2*(NdotR)).subtract(R);
+    return R;
+}
+
 function computeLighting(P,N,V, s) {
     let i=0.0;
     for (let light of lights){
@@ -192,7 +198,7 @@ function computeLighting(P,N,V, s) {
                 i+=light.intensity*(NdotL/(L.magnitude()*N.magnitude()));
             }
             if (s != -1){
-                R = N.scale(2*NdotL).subtract(L);
+                let R = reflectRay(L,N,NdotL);
                 const RdotV=R.dot(V);
                 if (RdotV>0) {
                     i+=light.intensity*((RdotV/(R.magnitude()*V.magnitude()))**s)
