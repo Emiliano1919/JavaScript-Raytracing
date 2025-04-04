@@ -96,6 +96,20 @@ class Vector {
     }
 }
 
+class Matrix3x3 {
+    constructor(rows) {
+        this.rows = rows; 
+        //Expects an array of 3 arrays, each with 3 numbers
+    }
+
+    multiplyVector(v) {
+        let x = this.rows[0][0] * v.x + this.rows[0][1] * v.y + this.rows[0][2] * v.z;
+        let y = this.rows[1][0] * v.x + this.rows[1][1] * v.y + this.rows[1][2] * v.z;
+        let z = this.rows[2][0] * v.x + this.rows[2][1] * v.y + this.rows[2][2] * v.z;
+        return new Vector(x, y, z);
+    }
+}
+
 function canvasToViewport(x, y) {
     return new Vector(x * (viewport_width / canvas.width), y * (viewport_height / canvas.height), 1);
 }
@@ -129,15 +143,44 @@ const lights= [
     new Light('directional', 0.2,null,new Vector(2, 1, 0))
 ];
 
+function rotationMatrix(xdegrees,ydegrees,zdegrees, v) {
+    let actual_x=(xdegrees * (Math.PI / 180));
+    let actual_y=(ydegrees * (Math.PI / 180));
+    let actual_z=(zdegrees * (Math.PI / 180));
+    let cos_x=Math.cos(actual_x)
+    let sin_x=Math.sin(actual_x)
+    let cos_y=Math.cos(actual_y)
+    let sin_y=Math.sin(actual_y)
+    let cos_z=Math.cos(actual_z)
+    let sin_z=Math.sin(actual_z)
+    const xRmatrix = new Matrix3x3([
+        [1, 0, 0],
+        [0, cos_x, -1 * sin_x],
+        [0, sin_x, cos_x]
+    ]);
+    const yRmatrix = new Matrix3x3([
+        [cos_y, 0, sin_y],
+        [0, 1, 0],
+        [-1 * sin_y, 0, cos_y]
+    ]);
+    const zRmatrix = new Matrix3x3([
+        [cos_z, -1 * sin_z, 0],
+        [sin_z, cos_z, 0],
+        [0, 0, 1]
+    ]);
+    updated_x=xRmatrix.multiplyVector(v);
+    updated_xy=yRmatrix.multiplyVector(updated_x);
+    updated_xyz=zRmatrix.multiplyVector(updated_xy);
+    return updated_xyz;
+}
 
 
 
-
-const O = new Vector(0, 0, 0);
+const O = new Vector(0, 0, -10);
 
 for (let x = -canvas.width / 2; x <= canvas.width / 2; x++) {
     for (let y = -canvas.height / 2; y <= canvas.height / 2; y++) {
-        let D = canvasToViewport(x, y);
+        let D = rotationMatrix(0,0,0, canvasToViewport(x, y));
         let color = traceRay(O, D, 1, inf, 3);
         putPixel(x, y, color);
     }
