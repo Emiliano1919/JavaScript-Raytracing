@@ -168,10 +168,10 @@ function rotationMatrix(xdegrees,ydegrees,zdegrees, v) {
         [sin_z, cos_z, 0],
         [0, 0, 1]
     ]);
-    updated_x=xRmatrix.multiplyVector(v);
-    updated_xy=yRmatrix.multiplyVector(updated_x);
-    updated_xyz=zRmatrix.multiplyVector(updated_xy);
-    return updated_xyz;
+    updated_z = zRmatrix.multiplyVector(v);
+    updated_zy = yRmatrix.multiplyVector(updated_z);
+    updated_zyx = xRmatrix.multiplyVector(updated_zy);
+    return updated_zyx;
 }
 
 
