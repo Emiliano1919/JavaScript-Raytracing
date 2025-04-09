@@ -96,6 +96,34 @@ class Vector {
     }
 }
 
+class Plane {
+    constructor(point, normal, color1, color2, specular = 0, reflective = 0.3) {
+        this.point = point;
+        this.normal = normal.normalize();
+        this.color1 = color1; // We are assuming the checker pattern
+        this.color2 = color2;
+        this.specular = specular;
+        this.reflective = reflective;
+    }
+
+    // Ray-plane intersection
+    intersect(O, D) {
+        const denominator = this.normal.dot(D);
+        if (Math.abs(denominator) < 1e-6) return null; // Ray is parallel
+
+        const t = this.point.subtract(O).dot(this.normal) / denominator;
+        return t >= 0 ? t : null;
+    }
+
+    // Get checkered color at a given point on the plane
+    getColorAt(point) {
+        const scale = 1.0; // tweak this to scale the checks
+        const x = Math.floor(point.x * scale);
+        const z = Math.floor(point.z * scale);
+        return (x + z) % 2 === 0 ? this.color1 : this.color2;
+    }
+}
+
 class Matrix3x3 {
     constructor(rows) {
         this.rows = rows; 
@@ -137,6 +165,14 @@ const spheres = [
     new Sphere(new Vector(2, 0, 4), 1, new Color(0, 0, 255),10,0.4),
     new Sphere(new Vector(0, -5001, 0), 5000, new Color(255, 0, 255),100,0.5)
 ];
+
+const planes = [
+    new Plane(new Vector(20, 10, 0), new Vector(1, 0, 0),
+              new Color(255, 0, 255), new Color(0, 0, 200), 0, 0.2),
+    new Plane(new Vector(0, -1, 0), new Vector(0, 1, 0),
+              new Color(255, 255, 255), new Color(0, 200, 200), 100, 0.2)
+];
+
 const lights= [
     new Light('ambient', 0.2),
     new Light('point', 0.6, new Vector(2, 1, 0)),
@@ -180,7 +216,7 @@ const O = new Vector(0, 0, -10);
 
 for (let x = -canvas.width / 2; x <= canvas.width / 2; x++) {
     for (let y = -canvas.height / 2; y <= canvas.height / 2; y++) {
-        let D = rotationMatrix(0,0,0, canvasToViewport(x, y));
+        let D = rotationMatrix(0,10,0, canvasToViewport(x, y));
         let color = traceRay(O, D, 1, inf, 3);
         putPixel(x, y, color);
     }
@@ -188,24 +224,36 @@ for (let x = -canvas.width / 2; x <= canvas.width / 2; x++) {
 
 canvas_ctx.putImageData(canvas_buffer, 0, 0);
 
-function closestIntersection(O,D,t_min,t_max){
+function closestIntersection(O, D, t_min, t_max) {
     let closest_t = inf;
-    let closest_sphere = null;
+    let closest_obj = null;
+    let is_plane = false;
 
     for (let sphere of spheres) {
         let [t1, t2] = intersectRaySphere(O, D, sphere);
 
         if (t1 >= t_min && t1 < closest_t) {
             closest_t = t1;
-            closest_sphere = sphere;
+            closest_obj = sphere;
         }
         if (t2 >= t_min && t2 < closest_t) {
             closest_t = t2;
-            closest_sphere = sphere;
+            closest_obj = sphere;
         }
     }
-    return [closest_sphere, closest_t];
+
+    for (let plane of planes) {
+        const t = plane.intersect(O, D);
+        if (t != null && t_min < t && t < closest_t) {
+            closest_t = t;
+            closest_obj = plane;
+            is_plane = true;
+        }
+    }
+
+    return [closest_obj, closest_t, is_plane];
 }
+
 
 function reflectRay(R, N,NdotR){
     return N.scale(2 * NdotR).subtract(R);
@@ -251,17 +299,19 @@ function computeLighting(P,N,V, s) {
 }
 
 function traceRay(O, D, t_min, t_max , recursion_depth) {
-    let [closest_sphere,closest_t]= closestIntersection(O, D, t_min, t_max);
-    if (closest_sphere == null) {
+    let [obj, closest_t, is_plane] = closestIntersection(O, D, t_min, t_max);
+    if (obj == null) {
         return BACKGROUND_COLOR;
     }
-    P = O.add(D.scale(closest_t)); //P=O+t(V-O)=O+tD
-    N = P.subtract(closest_sphere.centre); // The normal vector of a sphere is just the vector that you get from
-    // subtracting the center vector to the perimeter vector at a certain point
-    N = N.scale(1/(N.magnitude()));
-    let local_color= closest_sphere.color.modifyIntensity(computeLighting(P, N,D.scale(-1), closest_sphere.specular));
+    let P = O.add(D.scale(closest_t)); //P=O+t(V-O)=O+tD
+    let N = is_plane ? obj.normal : P.subtract(obj.centre).normalize();
+    
+    const color = is_plane ? obj.getColorAt(P) : obj.color;
+    const local_color = color.modifyIntensity(
+        computeLighting(P, N, D.scale(-1), obj.specular)
+    );
 
-    let r=closest_sphere.reflective
+    let r=obj.reflective;
     if ( r<=0 || recursion_depth <= 0 ) {
         return local_color;
     }
