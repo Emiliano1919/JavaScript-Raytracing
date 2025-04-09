@@ -168,9 +168,9 @@ const spheres = [
 
 const planes = [
     new Plane(new Vector(20, 10, 0), new Vector(1, 0, 0),
-              new Color(255, 0, 255), new Color(0, 0, 200), 0, 0.2),
+              new Color(255, 0, 255), new Color(0, 0, 200), 0, 0),
     new Plane(new Vector(0, -1, 0), new Vector(0, 1, 0),
-              new Color(255, 255, 255), new Color(0, 200, 200), 100, 0.2)
+              new Color(255, 255, 255), new Color(0, 200, 200), 10, 0.1)
 ];
 
 const lights= [
