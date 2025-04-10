@@ -54,13 +54,14 @@ class Light {
 const BACKGROUND_COLOR = new Color(255, 255, 255);
 
 class Sphere {
-    constructor(centre, radius, color, specular,reflective, refraction) {
+    constructor(centre, radius, color, specular,reflective, refraction, isRefractive) {
         this.centre = centre;
         this.radius = radius;
         this.color = color;
         this.specular = specular;
         this.reflective=reflective;
         this.refraction = refraction; // When 0 we will take it as non transparent material (skip refraction)
+        this.isRefractive = isRefractive;
     }
 }
 
@@ -98,7 +99,7 @@ class Vector {
 }
 
 class Plane {
-    constructor(point, normal, color1, color2, specular = 0, reflective = 0.3, refraction) {
+    constructor(point, normal, color1, color2, specular = 0, reflective = 0.3, refraction, isRefractive) {
         this.point = point;
         this.normal = normal.normalize();
         this.color1 = color1; // We are assuming the checker pattern
@@ -106,6 +107,7 @@ class Plane {
         this.specular = specular;
         this.reflective = reflective;
         this.refraction = refraction;
+        this.isRefractive = isRefractive;
     }
 
     // Ray-plane intersection
@@ -162,15 +164,15 @@ function putPixel(x, y, color) {
 // The Scene
 const camera_position = new Vector(0, 0, 0);
 const spheres = [
-    new Sphere(new Vector(0, -1, 3), 1, new Color(255, 0, 0),500,0.2,0),
-    new Sphere(new Vector(-2, 0, 4), 1, new Color(0, 255, 0),80,0.3,0),
-    new Sphere(new Vector(2, 0, 4), 1, new Color(0, 0, 255),10,0.4,1.33), // refraction of water
-    new Sphere(new Vector(0, -5001, 0), 5000, new Color(255, 0, 255),100,0.5,0)
+    new Sphere(new Vector(0, -1, 3), 1, new Color(255, 0, 0),500,0.2,0,false),
+    new Sphere(new Vector(-2, 0, 4), 1, new Color(0, 255, 0),80,0.3,0,false),
+    new Sphere(new Vector(2, 0, 4), 1, new Color(0, 0, 255),10,0.4,1.33,true), // refraction of water
+    new Sphere(new Vector(0, -5001, 0), 5000, new Color(255, 0, 255),100,0.5,0,false)
 ];
 
 const planes = [
     new Plane(new Vector(0, -1, 0), new Vector(0, 1, 0),
-              new Color(255, 255, 255), new Color(0, 200, 200), 10, 0.1,0)
+              new Color(255, 255, 255), new Color(0, 200, 200), 10, 0.1,0,false)
 ];
 
 const lights= [
@@ -216,7 +218,7 @@ const O = new Vector(0, 0, -10);
 
 for (let x = -canvas.width / 2; x <= canvas.width / 2; x++) {
     for (let y = -canvas.height / 2; y <= canvas.height / 2; y++) {
-        let D = rotationMatrix(0,10,0, canvasToViewport(x, y));
+        let D = rotationMatrix(0,0,0, canvasToViewport(x, y));
         let color = traceRay(O, D, 1, inf, 3,1);
         putPixel(x, y, color);
     }
@@ -320,7 +322,7 @@ function traceRay(O, D, t_min, t_max , recursion_depth, current_refraction) {
     let R=reflectRay(mD,N, NdotmD);
     let reflected_color = traceRay(P,R,0.001,inf,recursion_depth-1,current_refraction);
     let refracted_color = BACKGROUND_COLOR;
-    if (current_refraction != 0) {
+    if (obj.isRefractive == true) {
         let n1, n2;
         if (D.dot(N) > 0) {
             N = N.scale(-1);  // Flip the normal if we are exiting
@@ -341,10 +343,11 @@ function traceRay(O, D, t_min, t_max , recursion_depth, current_refraction) {
             const refractedDirection = D.scale(n1 / n2).add(N.scale((n1 / n2) * cosAlpha1 - cosAlpha2));
             refracted_color = traceRay(P, refractedDirection, 0.001, inf, recursion_depth - 1, n2);
         }
+        return local_color.modifyIntensity(1 - r).add(reflected_color.modifyIntensity(r).add(refracted_color.modifyIntensity(r)));
     }
-
-    return local_color.modifyIntensity(1 - r).add(reflected_color.modifyIntensity(r).add(refracted_color.modifyIntensity(r)));
+    return local_color.modifyIntensity(1 - r).add(reflected_color.modifyIntensity(r));
 }
+    
 
 function intersectRaySphere(O, D, sphere) {
     let CO = O.subtract(sphere.centre);
