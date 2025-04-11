@@ -166,7 +166,7 @@ const camera_position = new Vector(0, 0, 0);
 const spheres = [
     new Sphere(new Vector(0, -1, 3), 1, new Color(255, 0, 0),500,0.2,0,false),
     new Sphere(new Vector(-2, 0, 4), 1, new Color(0, 255, 0),80,0.3,0,false),
-    new Sphere(new Vector(2, 2, 4), 2, new Color(0, 0, 255),10,0.4,1.5,true), // refraction of glass
+    new Sphere(new Vector(0, 0, -2), 1, new Color(0, 0, 255),10,0.4,1.5,true), // refraction of glass
     new Sphere(new Vector(0, -5001, 0), 5000, new Color(255, 0, 255),100,0.5,0,false)
 ];
 
@@ -214,7 +214,7 @@ function rotationMatrix(xdegrees,ydegrees,zdegrees, v) {
 
 
 
-const O = new Vector(0, 0, -10);
+const O = new Vector(-2, 0, -10);
 
 for (let x = -canvas.width / 2; x <= canvas.width / 2; x++) {
     for (let y = -canvas.height / 2; y <= canvas.height / 2; y++) {
