@@ -166,7 +166,7 @@ const camera_position = new Vector(0, 0, 0);
 const spheres = [
     new Sphere(new Vector(0, -1, 3), 1, new Color(255, 0, 0),500,0.2,0,false),
     new Sphere(new Vector(-2, 0, 4), 1, new Color(0, 255, 0),80,0.3,0,false),
-    new Sphere(new Vector(2, 0, 4), 1, new Color(0, 0, 255),10,0.4,1.33,true), // refraction of water
+    new Sphere(new Vector(2, 2, 4), 2, new Color(0, 0, 255),10,0.4,1.5,true), // refraction of glass
     new Sphere(new Vector(0, -5001, 0), 5000, new Color(255, 0, 255),100,0.5,0,false)
 ];
 
@@ -300,6 +300,8 @@ function computeLighting(P,N,V, s) {
     return i;
 }
 
+
+
 function traceRay(O, D, t_min, t_max , recursion_depth, current_refraction) {
     let [obj, closest_t, is_plane] = closestIntersection(O, D, t_min, t_max);
     if (obj == null) {
@@ -322,7 +324,7 @@ function traceRay(O, D, t_min, t_max , recursion_depth, current_refraction) {
     let R=reflectRay(mD,N, NdotmD);
     let reflected_color = traceRay(P,R,0.001,inf,recursion_depth-1,current_refraction);
     let refracted_color = BACKGROUND_COLOR;
-    if (obj.isRefractive == true) {
+    if (obj.isRefractive == true ) {
         let n1, n2;
         if (D.dot(N) > 0) {
             N = N.scale(-1);  // Flip the normal if we are exiting
@@ -331,19 +333,24 @@ function traceRay(O, D, t_min, t_max , recursion_depth, current_refraction) {
             [n1, n2] = [current_refraction, obj.refraction];
         }
 
-        const cosAlpha1 = N.dot(D.scale(-1)); 
-        const sinAlpha1 = Math.sqrt(1 - (cosAlpha1 * cosAlpha1)); 
+        const cosAlpha_i = N.dot(D.scale(-1)); 
+        const sinAlpha_i_p2 = (1 - (cosAlpha_i * cosAlpha_i)); 
 
-        const sinAlpha2 = (n1 / n2) * sinAlpha1;
+        const sinAlpha_t = ((n1 / n2) *(n1/n2)) * sinAlpha_i_p2;
 
-        if (sinAlpha2 > 1) {
-            refracted_color = new Color(0, 0,0);  // Cannot refract so do not contribute color (sin over 1 is not possible)
+        if (sinAlpha_t > 1) {
+            refracted_color = new Color(0,0,0);  // Cannot refract so do not contribute color (sin over 1 is not possible)
         } else {
-            const cosAlpha2 = Math.sqrt(1 - sinAlpha2 * sinAlpha2);
-            const refractedDirection = D.scale(n1 / n2).add(N.scale((n1 / n2) * cosAlpha1 - cosAlpha2));
+            const cosAlpha_t = Math.sqrt(1 - sinAlpha_t * sinAlpha_t);
+            const refractedDirection = D.scale(n1 / n2).add(
+                N.scale((n1 / n2) * cosAlpha_i - cosAlpha_t)
+            ).normalize();
             refracted_color = traceRay(P, refractedDirection, 0.001, inf, recursion_depth - 1, n2);
         }
-        return local_color.modifyIntensity(1 - r).add(reflected_color.modifyIntensity(r).add(refracted_color.modifyIntensity(r)));
+        let localContribution = local_color.modifyIntensity(1 - r );
+        let reflectionContribution = reflected_color.modifyIntensity(r);
+        let refractionContribution = refracted_color.modifyIntensity(r);
+        return localContribution.add(reflectionContribution).add(refractionContribution);
     }
     return local_color.modifyIntensity(1 - r).add(reflected_color.modifyIntensity(r));
 }
