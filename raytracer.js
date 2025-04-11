@@ -51,7 +51,7 @@ class Light {
     }
 }
 
-const BACKGROUND_COLOR = new Color(255, 255, 255);
+const BACKGROUND_COLOR = new Color(0, 0, 0);
 
 class Sphere {
     constructor(centre, radius, color, specular,reflective, refraction, isRefractive) {
@@ -326,14 +326,16 @@ function traceRay(O, D, t_min, t_max , recursion_depth, current_refraction) {
     let refracted_color = BACKGROUND_COLOR;
     if (obj.isRefractive == true ) {
         let n1, n2;
-        if (D.dot(N) > 0) {
+        let cosAlpha_i= N.dot(D);
+        if (N.dot(D) > 0) {
             N = N.scale(-1);  // Flip the normal if we are exiting
             [n1, n2] = [obj.refraction, 1.0];  // Going out to  air
         } else {
+            cosAlpha_i = -1 *( N.dot(D)); 
             [n1, n2] = [current_refraction, obj.refraction];
         }
 
-        const cosAlpha_i = N.dot(D.scale(-1)); 
+        
         const sinAlpha_i_p2 = (1 - (cosAlpha_i * cosAlpha_i)); 
 
         const sinAlpha_t = ((n1 / n2) *(n1/n2)) * sinAlpha_i_p2;
