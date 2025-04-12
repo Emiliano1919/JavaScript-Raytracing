@@ -1,5 +1,7 @@
 # JavaScript-Raytracing
-A raytracer implemented in javascript
+A raytracer implemented in javascript.
+
+![Latest scene from the raytracer](./latest_implementation.png)
 
 This raytracer currently implements:
 - Reflection (Specular)
@@ -33,4 +35,4 @@ I used 1 to learn how raytracer works, and i implemented the scenes (with some m
 
 This is the latest scene that i implemented. I think it is pretty cool what some linear algebra and some javascript can achieve. I will recommend anyone to do a project like this as it is very nice (It made me happy to be able to produce a visual image using just code).
 
-![Latest scene from the raytracer](./latest_implementation.png)
+
