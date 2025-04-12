@@ -166,8 +166,9 @@ const camera_position = new Vector(0, 0, 0);
 const spheres = [
     new Sphere(new Vector(0, -1, 3), 1, new Color(255, 0, 0),500,0.2,0,false),
     new Sphere(new Vector(-2, 0, 4), 1, new Color(0, 255, 0),80,0.3,0,false),
-    new Sphere(new Vector(0, 0, -2), 1, new Color(0, 0, 255),10,0.4,1.5,true), // refraction of glass
-    new Sphere(new Vector(0, -5001, 0), 5000, new Color(255, 0, 255),100,0.5,0,false)
+    new Sphere(new Vector(0, 0, -2), 1, new Color(0, 0, 255),10,0.7,1.5,true), // refraction of glass
+    new Sphere(new Vector(0, 3, 0), 1.5, new Color(255, 255, 255),100,1,0,false),
+    new Sphere(new Vector(-3, 0, -8), 0.5, new Color(255, 0, 255),100,0.3,0,false)
 ];
 
 const planes = [
