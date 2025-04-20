@@ -11,6 +11,15 @@ const viewport_width = 1;
 const viewport_height = 1;
 const projection_plane_z = 1;
 
+document.body.style.margin = "0";
+document.body.style.height = "100vh";
+document.body.style.display = "flex";
+document.body.style.justifyContent = "center";
+document.body.style.alignItems = "center";
+document.body.style.background = "offwhite"; 
+
+canvas.style.border = "8px solid whie";
+canvas.style.boxShadow = "0 8px 24px rgba(0, 0, 0, 5)";
 
 class Color {
     constructor(r, g, b) {
